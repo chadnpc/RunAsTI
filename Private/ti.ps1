@@ -3,7 +3,8 @@ function New-TIExecutable {
     .SYNOPSIS
         creates a new TI executable from the source code in the module
     #>
-    [CmdletBinding()]
+    [CmdletBinding()][OutputType([IO.FileInfo])]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrWhiteSpace()]
@@ -53,6 +54,6 @@ function New-TIExecutable {
     }
     
     end {
-        return $exc
+        return [IO.FileInfo]::New($exc)
     }
 }
