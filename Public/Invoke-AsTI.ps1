@@ -9,25 +9,19 @@ function Invoke-AsTI {
         # If ValidateNotNullOrEmpty requires content, this is necessary.
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$argumentList = @(" ")
+        [string[]]$argumentList = @("/c", "start", "pwsh.exe")
     )
     
     process {
         # The $ti variable will now be a System.IO.FileInfo object, representing the ti.exe file.
-        $ti = $(if ($argumentList.Count -eq 0 -and $executable -eq "cmd.exe") {
-                New-TIExecutable -executable $executable -arguments @("/c", "start", "pwsh.exe")
-            } else {
-                New-TIExecutable -executable $executable -arguments $ArgumentList
-            }
-        )
-        
+        $ti = New-TIExecutable -executable $executable -arguments $ArgumentList
         # Check if the generated TI executable file actually exists using its FullName.
-        if (![IO.File]::Exists($ti.FullName)) { # Corrected: using $ti.FullName
-            Write-Error "Failed to create temporary TI executable '$($ti.FullName)'. Cannot proceed."
+        if (![IO.File]::Exists($ti)) {
+            Write-Error "Failed to create temporary TI executable '$ti'. Cannot proceed."
             return
         }
         if ($PSCmdlet.ShouldProcess("$Executable $([string]::join(' ', $ArgumentList)) as TI", "Launch and monitor process")) {
-            Write-Verbose "Prepared temporary TI executable: $($ti.FullName)" # Corrected: using $ti.FullName
+            Write-Verbose "Prepared temporary TI executable: $ti"
             # Since $ti.exe contains the embedded executable and its arguments,
             # we just need to run ti.exe itself. No separate arguments are passed here.
             $process = $null
@@ -37,11 +31,11 @@ function Invoke-AsTI {
                 # No ArgumentList is passed here, as the Go program has the target's arguments embedded.
                 $process = Start-Process -FilePath $ti.FullName -PassThru -ErrorAction Stop
             } catch {
-                Write-Error "Failed to start temporary TI executable '$($ti.FullName)': $_"
+                Write-Error "Failed to start temporary TI executable '$ti': $_"
                 # Attempt to clean up the temporary executable file even if launch fails
-                if (Test-Path $ti.FullName) { # Corrected: using $ti.FullName
-                    Write-Verbose "Attempting to clean up temporary TI executable '$($ti.FullName)' after failed launch." # Corrected
-                    Remove-Item $ti.FullName -Force -ErrorAction SilentlyContinue # Corrected
+                if (Test-Path $ti) {
+                    Write-Verbose "Attempting to clean up temporary TI executable '$ti' after failed launch." # Corrected
+                    Remove-Item $ti -Force -ErrorAction SilentlyContinue # Corrected
                 }
                 return # Exit the function
             }
@@ -54,7 +48,7 @@ function Invoke-AsTI {
             
             # Capture the path to the temporary file for the event handler's scope.
             # PowerShell closures allow the script block to access variables from its defining scope.
-            $tiPathToDelete = $ti.FullName # Corrected: using $ti.FullName
+            $tiPathToDelete = $ti.FullName
             
             # Register for the Exited event of the launched process.
             # The Action script block will be executed when the process exits.
@@ -68,17 +62,17 @@ function Invoke-AsTI {
                     # Inside the event handler, access $tiPathToDelete and $sourceIdentifier
                     # which were captured from the Invoke-AsTI function's scope (closure).
                     
-                    Write-Host "Cleanup: Process $($Sender.Id) exited. Deleting temporary file '$tiPathToDelete'..."
+                    Write-Host "Cleanup: Process $($Sender.Id) exited. Deleting temporary file '$using:tiPathToDelete'..."
                     
-                    if (Test-Path $tiPathToDelete) {
+                    if (Test-Path $using:tiPathToDelete -PathType Leaf) {
                         try {
-                            Remove-Item $tiPathToDelete -Force -ErrorAction Stop
-                            Write-Host "Cleanup: Successfully deleted temporary TI executable: $tiPathToDelete"
+                            Remove-Item $using:tiPathToDelete -Force -ErrorAction Stop
+                            Write-Host "Cleanup: Successfully deleted temporary TI executable: $using:tiPathToDelete"
                         } catch {
-                            Write-Warning "Cleanup: Failed to delete temporary TI executable '$tiPathToDelete': $($_.Exception.Message)"
+                            Write-Warning "Cleanup: Failed to delete temporary TI executable '$using:tiPathToDelete': $($_.Exception.Message)"
                         }
                     } else {
-                        Write-Warning "Cleanup: Temporary TI executable '$tiPathToDelete' not found (possibly already deleted)."
+                        Write-Warning "Cleanup: Temporary TI executable '$using:tiPathToDelete' not found (possibly already deleted)."
                     }
                     
                     # Unregister the event subscription to prevent memory leaks and unnecessary event processing.
