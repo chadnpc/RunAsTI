@@ -1,7 +1,8 @@
 ﻿
 # [RunAsTI](https://www.powershellgallery.com/packages/RunAsTI)
 
-🔥 Blazingly fast PowerShell thingy that stonks up your terminal game.
+Provides a convenient PowerShell wrapper for launching executables with highest permissions.
+
 
 [![Build Module](https://github.com/chadnpc/RunAsTI/actions/workflows/build_module.yaml/badge.svg)](https://github.com/chadnpc/RunAsTI/actions/workflows/build_module.yaml)
 [![Downloads](https://img.shields.io/powershellgallery/dt/RunAsTI.svg?style=flat&logo=powershell&color=blue)](https://www.powershellgallery.com/packages/RunAsTI)
@@ -16,7 +17,7 @@ then
 
 ```PowerShell
 Import-Module RunAsTI
-# do stuff here.
+RunAsTI pwsh.exe
 ```
 
 ## License
