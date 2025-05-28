@@ -1,9 +1,12 @@
 ﻿
 #!/usr/bin/env pwsh
-#region    Classes
+#requires -Modules PsModuleBase
 
+#region    Classes
 # Main class
 class RunAsTI {
+    static [void] Start() {
+    }
 }
 
 #endregion Classes

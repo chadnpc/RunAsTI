@@ -51,7 +51,10 @@ ClrVersion = '1.1.0'
 ProcessorArchitecture = 'None'
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('PSScriptAnalyzer')
+RequiredModules = @(
+    'PSScriptAnalyzer',
+    'PsModuleBase'
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -98,7 +101,7 @@ PrivateData = @{
         Tags = 'PowerShell', 'RunAsTI', 'Emery'
 
         # A URL to the license for this module.
-        LicenseUri = 'https://chadnpc.mit-license.org/'
+        LicenseUri = 'https://alain.mit-license.org/'
 
         # A URL to the main website for this project.
         ProjectUri = 'https://github.com/chadnpc/RunAsTI'
